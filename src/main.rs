@@ -1,5 +1,5 @@
 use actix_web::{HttpServer, App, web::Data};
-use sqlx::{Pool, mysql::MySqlPoolOptions, MySql};
+use sqlx::{Pool, Postgres, postgres::PgPoolOptions};
 use dotenv::dotenv;
 use std::io::Result;
 
@@ -7,14 +7,14 @@ mod users;
 use users::routes::config as user_routes;
 
 pub struct AppState {
-    db: Pool<MySql>
+    db: Pool<Postgres>
 }
 
 #[actix_web::main] 
 async fn main() -> Result<()> {
     dotenv().ok();
     let connecrion_string = std::env::var("DATABASE_URL").expect("Строка подлючения должна быть установлена!");
-    let pool: Pool<MySql> = MySqlPoolOptions::new()
+    let pool: Pool<Postgres> = PgPoolOptions::new()
         .max_connections(5)
         .connect(&connecrion_string)
         .await.expect("Ошибка пула подключений!");

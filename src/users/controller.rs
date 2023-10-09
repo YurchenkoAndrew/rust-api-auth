@@ -6,7 +6,7 @@ use crate::{AppState, users::{models::UserCreate, repository}};
 #[post("/users/register")]
 async fn register(state: Data<AppState>, new_user: Json<UserCreate>) -> impl Responder {
     match repository::create_user(state, new_user).await {
-        Ok(()) => HttpResponse::Ok().json("User created!"),
+        Ok(user) => HttpResponse::Ok().json(user),
         Err(e) => {
             if let Some(db_error) = e.as_database_error() {
                 match db_error.is_unique_violation() {
