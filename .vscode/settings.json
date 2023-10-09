@@ -1,18 +1,10 @@
 {
-    "sqltools.connections": [
-        {
-            "mysqlOptions": {
-                "authProtocol": "default",
-                "enableSsl": "Disabled"
-            },
-            "previewLimit": 50,
-            "server": "localhost",
-            "driver": "MySQL",
-            "name": "rust_api_auth",
-            "database": "rust_api_auth",
-            "username": "root",
-            "password": "123456789",
-            "connectString": "mysql://root:9673545Andrew@localhost:3306/rust_api_auth"
-        }
+    "rust-analyzer.linkedProjects": [
+        ".\\Cargo.toml",
+        ".\\Cargo.toml",
+        ".\\Cargo.toml",
+        ".\\Cargo.toml",
+        ".\\Cargo.toml",
+        ".\\Cargo.toml"
     ]
 }
