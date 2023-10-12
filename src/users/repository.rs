@@ -4,7 +4,7 @@ use super::{models::{UserCreate, User}, service};
 use crate::AppState;
 
 pub async fn create_user(state: Data<AppState>, new_user: Json<UserCreate>) -> Result<User, Error> {
-    let sql: &str = "INSERT INTO users (username, email, password, active) VALUES ($1, $2, $3, $4) RETURNING (id, username, email, created_at, updated_at, active)";
+    let sql: &str = "INSERT INTO users (username, email, password, active) VALUES ($1, $2, $3, $4) RETURNING id, username, email, password, created_at, updated_at, active";
     let user = sqlx::query_as::<_, User>(sql)
         .bind(new_user.username.to_string())
         .bind(new_user.email.to_string())
@@ -14,7 +14,7 @@ pub async fn create_user(state: Data<AppState>, new_user: Json<UserCreate>) -> R
     user
 }
 
-pub async fn user_details(state: Data<AppState>, id: i64) -> Result<User, Error> {
+pub async fn user_details(state: Data<AppState>, id: i32) -> Result<User, Error> {
     let sql: &str = "SELECT id, username, email, created_at, updated_at, active FROM users WHERE id = $1";
     let user: Result<User, Error> = sqlx::query_as::<_, User>(sql)
         .bind(id)
