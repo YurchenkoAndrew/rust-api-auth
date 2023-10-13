@@ -1,4 +1,4 @@
-use actix_web::{Responder, web::{Json, Data}, post, HttpResponse};
+use actix_web::{Responder, web::{Json, Data, Path}, post, HttpResponse, get};
 
 
 use crate::{AppState, users::{models::UserCreate, repository}};
@@ -20,6 +20,19 @@ async fn register(state: Data<AppState>, new_user: Json<UserCreate>) -> impl Res
                 eprintln!("Error: {:?}", e);
                 return HttpResponse::InternalServerError().json("Internal Server Error");
             }
+        }
+    }
+}
+
+
+#[get("/users/{id}")]
+async fn user_details(state: Data<AppState>, path: Path<i64>) -> impl Responder {
+    let user_id: i64 = path.into_inner();
+    match repository::user_details(state, user_id).await {
+        Ok(user) => HttpResponse::Ok().json(user),
+        Err(error) => {
+            eprintln!("Error: {:?}", error);
+            return HttpResponse::NotFound().json("Такаой пользователь не найден!");
         }
     }
 }
