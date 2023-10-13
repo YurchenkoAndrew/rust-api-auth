@@ -1,6 +1,6 @@
 use actix_web::web::{Data, Json};
 use sqlx::Error;
-use super::{models::{UserCreate, UserDetails}, service};
+use super::{models::{UserCreate, UserDetails, UserList}, service};
 use crate::AppState;
 
 pub async fn create_user(state: Data<AppState>, new_user: Json<UserCreate>) -> Result<UserDetails, Error> {
@@ -12,6 +12,14 @@ pub async fn create_user(state: Data<AppState>, new_user: Json<UserCreate>) -> R
         .bind(true)
         .fetch_one(&state.db).await;
     user
+}
+
+pub async fn user_list(state: Data<AppState>) -> Result<Vec<UserList>, Error> {
+    let sql: &str = "SELECT id, username, email FROM users";
+    let users = sqlx::query_as::<_, UserList>(sql)
+        .fetch_all(&state.db)
+        .await?;
+    Ok(users)
 }
 
 pub async fn user_details(state: Data<AppState>, id: i64) -> Result<UserDetails, Error> {

@@ -17,3 +17,10 @@ pub struct UserCreate {
     pub email: String,
     pub password: String,
 }
+
+#[derive(Deserialize, Serialize, FromRow)]
+pub struct UserList {
+    pub id: i64,
+    pub username: String,
+    pub email: String,
+}

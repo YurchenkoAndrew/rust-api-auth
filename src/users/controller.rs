@@ -24,9 +24,20 @@ async fn register(state: Data<AppState>, new_user: Json<UserCreate>) -> impl Res
     }
 }
 
+#[get("/users")]
+async fn get_list_users(state: Data<AppState>) -> impl Responder {
+    match repository::user_list(state).await {
+        Ok(users) => HttpResponse::Ok().json(users),
+        Err(e) => {
+            eprintln!("Error: {:?}", e);
+            return HttpResponse::InternalServerError().json("Interna; Server Error");
+        }
+    }
+}
 
-#[get("/users/{id}")]
-async fn user_details(state: Data<AppState>, path: Path<i64>) -> impl Responder {
+
+#[get("/users/details/{id}")]
+async fn get_user_by_id(state: Data<AppState>, path: Path<i64>) -> impl Responder {
     let user_id: i64 = path.into_inner();
     match repository::user_details(state, user_id).await {
         Ok(user) => HttpResponse::Ok().json(user),
