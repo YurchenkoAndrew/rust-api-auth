@@ -24,3 +24,10 @@ pub struct UserList {
     pub username: String,
     pub email: String,
 }
+
+#[derive(Deserialize, Serialize, FromRow)]
+pub struct UserUpdate {
+    pub username: String,
+    pub email: String,
+    pub active: bool,
+}
