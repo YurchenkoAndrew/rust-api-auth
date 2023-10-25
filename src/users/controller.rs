@@ -62,3 +62,15 @@ async fn user_update(state: Data<AppState>, path: Path<i64>, update_user: Json<U
         }
     }
 }
+
+#[delete("/users/{id}")]
+async fn user_delete(state: Data<AppState>, path: Path<i64>) -> impl Responder {
+    let id = path.into_inner();
+    match repository::user_delete(state, id).await {
+        Ok(user) => HttpResponse::Ok().json(user),
+        Err(e) => {
+            println!("Error: {:?}", e);
+            HttpResponse::InternalServerError().json("Internal Server Error")
+        }
+    }
+}

@@ -42,3 +42,12 @@ pub async fn user_update(state: Data<AppState>, id: i64, update_user: Json<UserU
         .await;
     user
 }
+
+pub async fn user_delete(state: Data<AppState>, id: i64) -> Result<UserDetails, Error> {
+    let sql = "DELETE FROM users WHERE id = $1 RETURNING id, username, email, password, created_at, updated_at, active";
+    let user = sqlx::query_as::<_, UserDetails>(sql)
+        .bind(id)
+        .fetch_one(&state.db)
+        .await;
+    user
+}
