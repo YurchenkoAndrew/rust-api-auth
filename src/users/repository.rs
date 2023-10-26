@@ -1,11 +1,11 @@
 use actix_web::web::{Data, Json};
 use sqlx::Error;
-use super::{service, requests::{AuthQuery, UserCreateOuery, UserUpdateRequest}, responses::{AuthResponse, UserDetailsResponse, UserListResponse}};
+use super::{service, requests::{AuthQuery, UserCreateOuery, UserUpdateRequest}, responses::{AuthResponse, UserDetailsResponse, UserListResponse, TokenResponse}};
 use crate::AppState;
 
 pub async fn create_user(state: Data<AppState>, new_user: Json<UserCreateOuery>) -> Result<UserDetailsResponse, Error> {
     let sql: &str = "INSERT INTO users (username, email, password, active) VALUES ($1, $2, $3, $4) RETURNING id, username, email, password, created_at, updated_at, active";
-    let user = sqlx::query_as::<_, UserDetailsResponse>(sql)
+    let user = sqlx::query_as::<sqlx::Postgres, UserDetailsResponse>(sql)
         .bind(new_user.username.to_string())
         .bind(new_user.email.to_string())
         .bind(service::password_hashing(&new_user.password))
@@ -14,13 +14,24 @@ pub async fn create_user(state: Data<AppState>, new_user: Json<UserCreateOuery>)
     user
 }
 
-pub async fn user_auth(state: Data<AppState>, auth_query: Json<AuthQuery>) -> Result<AuthResponse, Error> {
-    let sql = "SELECT email, password FROM users WHERE email = $1 AND active = true";
+pub async fn user_auth(state: &Data<AppState>, auth_query: Json<AuthQuery>) -> Result<AuthResponse, Error> {
+    let sql = "SELECT id AS user_id, email, password FROM users WHERE email = $1 AND active = true";
     let auth_response = sqlx::query_as::<_, AuthResponse>(sql)
     .bind(auth_query.email.to_string())
         .fetch_one(&state.db)
         .await;
     auth_response
+}
+
+pub async fn save_token(state: Data<AppState>, token_response: Json<TokenResponse>) -> Result<TokenResponse, Error> {
+    let sql = "INSERT INTO access_tokens (id, user_id, expires_at) VALUES ($1, $2, $3) RETURNING id as token, user_id, expires_at, created_at, updated_at";
+    let token_response = sqlx::query_as::<sqlx::Postgres, TokenResponse>(sql)
+        .bind(token_response.token.to_string())
+        .bind(token_response.user_id)
+        .bind(token_response.expires_at)
+        .fetch_one(&state.db)
+        .await;
+    token_response
 }
 
 pub async fn user_list(state: Data<AppState>) -> Result<Vec<UserListResponse>, Error> {

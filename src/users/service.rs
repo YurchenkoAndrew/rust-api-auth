@@ -31,7 +31,7 @@ pub fn create_token(user: &AuthResponse) -> Result<String, Error> {
     Ok(token)
 }
 
-pub fn create_exp_time() -> DateTime<Utc> {
+pub fn create_token_exp_time() -> DateTime<Utc> {
     let current_time = Utc::now();
     let duration = Duration::seconds(PERIOD);
     current_time.checked_add_signed(duration).expect("Failed to add duration to current time")
