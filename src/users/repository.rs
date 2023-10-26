@@ -1,6 +1,6 @@
 use actix_web::web::{Data, Json};
 use sqlx::Error;
-use super::{service, queries::{AuthQuery, UserCreateOuery, UserUpdateRequest}, responses::{AuthResponse, UserDetailsResponse, UserListResponse}};
+use super::{service, requests::{AuthQuery, UserCreateOuery, UserUpdateRequest}, responses::{AuthResponse, UserDetailsResponse, UserListResponse}};
 use crate::AppState;
 
 pub async fn create_user(state: Data<AppState>, new_user: Json<UserCreateOuery>) -> Result<UserDetailsResponse, Error> {

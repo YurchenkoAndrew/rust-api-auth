@@ -1,9 +1,9 @@
 use actix_web::{Responder, web::{Json, Data, Path}, post, HttpResponse, get, patch, delete};
 
 
-use crate::{AppState, users::{repository, queries::{UserCreateOuery, UserUpdateRequest}, service, responses::TokenResponse}};
+use crate::{AppState, users::{repository, requests::{UserCreateOuery, UserUpdateRequest}, service, responses::TokenResponse}};
 
-use super::queries::AuthQuery;
+use super::requests::AuthQuery;
 
 #[post("/users/register")]
 async fn register(state: Data<AppState>, new_user: Json<UserCreateOuery>) -> impl Responder {
