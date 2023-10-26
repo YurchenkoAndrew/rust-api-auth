@@ -1,14 +1,14 @@
 use actix_web::{Responder, web::{Json, Data, Path}, post, HttpResponse, get, patch, delete};
 
 
-use crate::{AppState, users::{models::UserCreate, repository}};
+use crate::{AppState, users::{repository, queries::{UserCreateOuery, UserUpdateRequest}, service, responses::TokenResponse}};
 
-use super::models::UserUpdate;
+use super::queries::AuthQuery;
 
 #[post("/users/register")]
-async fn register(state: Data<AppState>, new_user: Json<UserCreate>) -> impl Responder {
+async fn register(state: Data<AppState>, new_user: Json<UserCreateOuery>) -> impl Responder {
     match repository::create_user(state, new_user).await {
-        Ok(user) => HttpResponse::Ok().json(user),
+        Ok(user) => HttpResponse::Created().json(user),
         Err(e) => {
             if let Some(db_error) = e.as_database_error() {
                 match db_error.is_unique_violation() {
@@ -22,6 +22,44 @@ async fn register(state: Data<AppState>, new_user: Json<UserCreate>) -> impl Res
                 eprintln!("Error: {:?}", e);
                 return HttpResponse::InternalServerError().json("Internal Server Error");
             }
+        }
+    }
+}
+
+#[post("/users/login")]
+async fn user_auth(state: Data<AppState>, auth_query: Json<AuthQuery>) -> impl Responder {
+    let password_query = auth_query.password.clone();
+    match repository::user_auth(state, auth_query).await {
+        Ok(auth_response) => {
+            match service::verify_password(&password_query, &auth_response.password) {
+                true => {
+                    match service::create_token(&auth_response) {
+                        Ok(token) => {
+                            let exp = service::create_exp_time();
+                            let token_response: TokenResponse = TokenResponse{token, token_exp: exp};
+                            HttpResponse::Ok().json(token_response)
+                        },
+                        Err(err) => {
+                            println!("Error: {:?}", err);
+                            HttpResponse::InternalServerError().json("Internal Server Error")
+                    }
+                    }
+                }
+                false => HttpResponse::NotAcceptable().json("Неверный пароль!")
+            }
+        },
+        Err(error) => {
+            match error {
+                sqlx::Error::RowNotFound => {
+                    HttpResponse::NotFound().json("Нет такой учетной записи!")
+                }
+                _ => {
+                    // Обработка других ошибок
+                eprintln!("Error: {:?}", error);
+                HttpResponse::InternalServerError().json("Внутренняя ошибка сервера!")
+                }
+            }
+                
         }
     }
 }
@@ -51,10 +89,10 @@ async fn get_user_by_id(state: Data<AppState>, path: Path<i64>) -> impl Responde
 }
 
 #[patch("/users/{id}")]
-async fn user_update(state: Data<AppState>, path: Path<i64>, update_user: Json<UserUpdate>) -> impl Responder {
+async fn user_update(state: Data<AppState>, path: Path<i64>, update_user: Json<UserUpdateRequest>) -> impl Responder {
     let id = path.into_inner();
     match repository::user_update(state, id, update_user).await {
-        Ok(user) => HttpResponse::Ok().json(user),
+        Ok(user) => HttpResponse::Created().json(user),
         
         Err(error) => {
             eprintln!("Error: {:?}", error);
